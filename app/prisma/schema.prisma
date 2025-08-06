@@ -1,0 +1,131 @@
+// AI-Enhanced Medical Content Creation Business Schema
+
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+    output = "/home/ubuntu/medical_content_business/app/node_modules/.prisma/client"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Contact inquiries and leads
+model Contact {
+  id              Int      @id @default(autoincrement())
+  name            String
+  email           String
+  phone           String?
+  company         String?
+  jobTitle        String?
+  serviceType     String   // "patient-education", "clinical-content", "regulatory", etc.
+  projectBudget   String?  // "under-5k", "5k-15k", "15k-50k", "50k+"
+  timeline        String?  // "urgent", "1-month", "3-months", "flexible"
+  message         String
+  status          String   @default("new") // "new", "contacted", "qualified", "converted", "closed"
+  source          String?  // "website", "linkedin", "referral", etc.
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Client management
+model Client {
+  id              Int       @id @default(autoincrement())
+  name            String
+  email           String    @unique
+  phone           String?
+  company         String
+  industry        String?   // "hospital", "pharma", "medical-device", "healthcare-tech"
+  contactId       Int?      // Original contact inquiry
+  projects        Project[]
+  testimonials    Testimonial[]
+  totalRevenue    Float     @default(0)
+  status          String    @default("active") // "active", "inactive", "potential"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Project tracking
+model Project {
+  id              Int      @id @default(autoincrement())
+  title           String
+  description     String?
+  client          Client   @relation(fields: [clientId], references: [id])
+  clientId        Int
+  serviceType     String   // "patient-education", "clinical-summary", "research-writing", etc.
+  status          String   @default("planning") // "planning", "in-progress", "review", "completed", "cancelled"
+  budget          Float?
+  deadline        DateTime?
+  deliverables    String?  // JSON array of deliverable items
+  wordCount       Int?
+  hourlyRate      Float?
+  fixedPrice      Float?
+  actualHours     Float?
+  startDate       DateTime?
+  completedDate   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Testimonials for social proof
+model Testimonial {
+  id              Int      @id @default(autoincrement())
+  client          Client   @relation(fields: [clientId], references: [id])
+  clientId        Int
+  content         String
+  rating          Int      @default(5) // 1-5 stars
+  projectType     String?
+  isPublic        Boolean  @default(false)
+  isApproved      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Blog posts for content marketing
+model BlogPost {
+  id              Int      @id @default(autoincrement())
+  title           String
+  slug            String   @unique
+  excerpt         String?
+  content         String
+  featuredImage   String?
+  category        String?  // "industry-insights", "case-studies", "medical-writing-tips"
+  tags            String?  // JSON array
+  published       Boolean  @default(false)
+  views           Int      @default(0)
+  seoTitle        String?
+  seoDescription  String?
+  publishedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Service packages for pricing
+model ServicePackage {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String
+  serviceType     String   // "patient-education", "clinical-content", etc.
+  pricing         String   // "hourly", "per-word", "fixed"
+  minRate         Float?
+  maxRate         Float?
+  deliveryTime    String?  // "24-hours", "3-days", "1-week"
+  features        String   // JSON array of features
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// Newsletter subscribers
+model Subscriber {
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  name            String?
+  source          String?  // "homepage", "blog", "lead-magnet"
+  interests       String?  // JSON array
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
